@@ -9,29 +9,26 @@ import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
-    private val _login = MutableStateFlow<LoginState>(LoginState.Empty)
-    val login = _login.asStateFlow()
+    private val _loginState = MutableStateFlow<LoginState>(LoginState.Empty)
+    val loginState = _loginState.asStateFlow()
 
     fun login(username: String, password: String) {
-        _login.value = LoginState.Loading(true)
+        _loginState.value = LoginState.Loading
         loginUseCase(username, password).onEach { resource ->
             when (resource) {
                 is Resource.Error -> {
-                    _login.value = LoginState.Loading(false)
-                    _login.value = LoginState.Error(Exception(resource.throwable))
+                    _loginState.value = LoginState.Error(Exception(resource.throwable))
                 }
                 is Resource.Success -> {
-                    _login.value = LoginState.Loading(false)
-                    _login.value = LoginState.Success(resource.data)
+                    _loginState.value = LoginState.Success(resource.data)
                 }
             }
         }.catch { exception ->
-            _login.value = LoginState.Loading(false)
-            _login.value = LoginState.Error(exception)
+            _loginState.value = LoginState.Error(exception)
         }.launchIn(viewModelScope)
     }
 }

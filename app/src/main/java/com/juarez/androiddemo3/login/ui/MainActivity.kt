@@ -18,7 +18,7 @@ import java.io.IOException
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,20 +38,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launchWhenStarted {
-            viewModel.login.collect {
+            viewModel.loginState.collect {
                 when (it) {
                     is LoginState.Error -> {
+                        binding.loginProgressBar.isVisible = false
+                        binding.btnLogin.isEnabled = true
+
                         if (it.exception is IOException) {
                             toast("Check your connection")
                         } else toast("Invalid credentials")
                     }
                     is LoginState.Loading -> {
-                        binding.loginProgressBar.isVisible = it.isLoading
-                        binding.btnLogin.isEnabled = !it.isLoading
+                        binding.loginProgressBar.isVisible = true
+                        binding.btnLogin.isEnabled = false
                     }
                     is LoginState.Success -> {
+                        binding.loginProgressBar.isVisible = false
+                        binding.btnLogin.isEnabled = true
+
                         val intent = Intent(this@MainActivity, HomeActivity::class.java)
-                        intent.putExtra("jwt", it.data)
+                        intent.putExtra("jwt", it.jwt)
                         startActivity(intent)
                     }
                     else -> Unit
