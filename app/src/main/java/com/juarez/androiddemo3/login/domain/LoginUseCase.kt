@@ -9,7 +9,7 @@ import javax.inject.Singleton
 @Singleton
 class LoginUseCase @Inject constructor(private val repository: LoginRepository) {
 
-    operator fun invoke(username: String, password: String): Flow<Resource<String>> {
+    operator fun invoke(username: String, password: String): Flow<Resource<TokenWrapper>> {
         return repository.login(username, password)
     }
 }

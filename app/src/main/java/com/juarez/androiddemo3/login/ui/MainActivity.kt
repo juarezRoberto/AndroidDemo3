@@ -27,6 +27,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnLogin.setOnClickListener {
 
+            // email admin@macropay.mx
+            // Admin1
+
             val username = binding.inputUsername.text.toString()
             val password = binding.inputPassword.text.toString()
 
@@ -38,13 +41,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launchWhenStarted {
-            viewModel.loginState.collect {
-                when (it) {
+            viewModel.loginState.collect { state ->
+                when (state) {
                     is LoginState.Error -> {
                         binding.loginProgressBar.isVisible = false
                         binding.btnLogin.isEnabled = true
 
-                        if (it.exception is IOException) {
+                        if (state.exception is IOException) {
                             toast("Check your connection")
                         } else toast("Invalid credentials")
                     }
@@ -57,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                         binding.btnLogin.isEnabled = true
 
                         val intent = Intent(this@MainActivity, HomeActivity::class.java)
-                        intent.putExtra("jwt", it.jwt)
+                        intent.putExtra("jwt", state.tokenWrapper.token)
                         startActivity(intent)
                     }
                     else -> Unit
