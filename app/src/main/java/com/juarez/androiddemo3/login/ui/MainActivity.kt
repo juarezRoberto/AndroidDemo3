@@ -10,7 +10,6 @@ import com.juarez.androiddemo3.databinding.ActivityMainBinding
 import com.juarez.androiddemo3.home.HomeActivity
 import com.juarez.androiddemo3.utils.toast
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import java.io.IOException
 
 
@@ -24,6 +23,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        viewModel.getUsers()
 
         binding.btnLogin.setOnClickListener {
 
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                         binding.loginProgressBar.isVisible = false
                         binding.btnLogin.isEnabled = true
 
-                        if (state.exception is IOException) {
+                        if (state.throwable is IOException) {
                             toast("Check your connection")
                         } else toast("Invalid credentials")
                     }
@@ -63,6 +64,24 @@ class MainActivity : AppCompatActivity() {
                         intent.putExtra("jwt", state.tokenWrapper.token)
                         startActivity(intent)
                     }
+                    is LoginState.Completed -> {
+                        toast("completed")
+                    }
+                    else -> Unit
+                }
+            }
+        }
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.usersState.collect { usersState ->
+                when (usersState) {
+                    is GetUsersState.Loading -> {
+                        if (usersState.isLoading) toast("Loading") else toast("No Loading")
+                    }
+                    is GetUsersState.Error -> {
+                        toast(usersState.throwable.localizedMessage ?: "unknown error")
+                    }
+                    is GetUsersState.Success -> toast(usersState.users.toString())
                     else -> Unit
                 }
             }

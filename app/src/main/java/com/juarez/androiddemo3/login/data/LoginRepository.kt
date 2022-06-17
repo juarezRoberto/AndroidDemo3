@@ -3,7 +3,6 @@ package com.juarez.androiddemo3.login.data
 import com.juarez.androiddemo3.api.MacroPayApi
 import com.juarez.androiddemo3.login.domain.TokenWrapper
 import com.juarez.androiddemo3.login.domain.toModel
-import com.juarez.androiddemo3.utils.Resource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -14,7 +13,8 @@ import okhttp3.MultipartBody
 import javax.inject.Inject
 
 interface LoginRepository {
-    fun login(username: String, password: String): Flow<Resource<TokenWrapper>>
+    fun login(username: String, password: String): Flow<TokenWrapper>
+    suspend fun getUsers(): List<Any>
 }
 
 
@@ -23,7 +23,7 @@ class LoginRepositoryImpl @Inject constructor(
     private val macroPayApi: MacroPayApi
 ) : LoginRepository {
 
-    override fun login(username: String, password: String): Flow<Resource<TokenWrapper>> = flow {
+    override fun login(username: String, password: String): Flow<TokenWrapper> = flow {
         delay(1000)
 
         val body = MultipartBody.Builder()
@@ -42,11 +42,18 @@ class LoginRepositoryImpl @Inject constructor(
 
             if (tokenResponse.success) {
                 val token = response.body()!!.toModel()
-                emit(Resource.Success(token))
-            } else emit(Resource.Error(Exception("Invalid credentials")))
+                emit(token)
+            } else throw Exception("Invalid credentials")
 
-        } else {
-            emit(Resource.Error(Exception("Some error login")))
+        } else throw Exception("Some error login")
+    }
+
+    override suspend fun getUsers(): List<Any> {
+        return withContext(defaultDispatcher) {
+            delay(4000)
+            listOf("Jose", "Roberto", "Joseph")
         }
     }
+
+
 }
